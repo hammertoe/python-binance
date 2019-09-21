@@ -93,6 +93,7 @@ class BaseClient(ABC):
         self.API_SECRET = api_secret
         self.session = self._init_session()
         self._requests_params = requests_params
+        self.x_mbx_order_count_1d = 0
 
     def _get_headers(self):
         return {
@@ -2107,6 +2108,9 @@ class AsyncClient(BaseClient):
         kwargs = self._get_request_kwargs(method, signed, force_params, **kwargs)
 
         async with getattr(self.session, method)(uri, **kwargs) as response:
+            order_count = response.headers.get('X-MBX-ORDER-COUNT-1D')
+            if order_count is not None:
+                self.x_mbx_order_count_1d = order_count
             return await self._handle_response(response)
 
     async def _handle_response(self, response):
@@ -2535,3 +2539,14 @@ class AsyncClient(BaseClient):
         }
         return await self._delete('userDataStream', False, data=params)
     stream_close.__doc__ = Client.stream_close.__doc__
+
+    async def orders_left(self, **params):
+
+        path = 'order/test'
+        signed = True
+        version = BaseClient.PUBLIC_API_VERSION
+        method = 'post'
+        params = {'symbol': 'BTCGBP', 'side': 'BUY', 'type': 'LIMIT', 'timeInForce': 'GTC', 'quantity': 1, 'price': '8497.63'}
+        uri = self._create_api_uri(path, signed, version)
+        async with getattr(self.session, method)(uri, data=params) as response:
+            return await self._handle_response(response)

@@ -200,8 +200,8 @@ class DepthCacheManager(object):
         await self._bm.start_depth_socket(self._symbol, self._depth_event)
 
         # wait for some socket responses
-        while not len(self._depth_message_buffer):
-            await asyncio.sleep(1)
+#        while not len(self._depth_message_buffer):
+#            await asyncio.sleep(1)
 
     async def _depth_event(self, msg):
         """Handle a depth event
